@@ -1,0 +1,148 @@
+<%- include("header.ejs") %>
+<!-- <div class="page-container"> -->
+<main class="content-wrap">
+
+    <div id="globalAlert" class="alert">
+      <span class="closebtn">&times;</span>
+      <div class="alert-content"></div>
+    </div>
+            
+    <!-- USE A FORM TO POST ,BASICALLY SAVES EVERYTHING FROM THE TEXTAREA -->
+    <form class="new-write" id="newWriteForm">
+      <h3>What did you feel or notice?</h3>
+      <textarea class="thought" name="thought" rows="5" placeholder="Write the moment, feeling, or question..."></textarea><br><br>
+
+      <h3>What do you think it meant? (Optional)</h3>
+      <textarea class="realization" name="realization" rows="5" placeholder="Add your reflection or understanding later..."></textarea><br><br>
+
+      <button class="save-button" type="submit">Save</button>
+    </form>
+
+</main>
+
+<!-- Add jQuery in the <head> or right before your script -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('newWriteForm');
+  if (!form) {
+    console.error("❌ Form element with id 'newWriteForm' not found.");
+    return;
+  }
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault(); // Prevent default form behavior
+
+    const thought = document.querySelector('textarea[name="thought"]').value.trim();
+    const realization = document.querySelector('textarea[name="realization"]').value.trim();
+
+    // console.log("📝 Form submitted with:");
+    // console.log("🧠 Thought:", thought);
+    // console.log("💡 Realization:", realization);
+
+    // Show temp feedback
+    // showTempStatus("Sending your thought...");
+
+    try {
+      const response = await fetch('/submit_thought', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // ✅ include cookies/session
+        body: JSON.stringify({ thought, realization }),
+      });
+
+      // console.log("📬 Response received with status:", response.status);
+
+      if (response.ok) {
+        localStorage.setItem('actionStatus', 'success');
+        localStorage.setItem(
+          'actionMessage',
+          `<img 
+            src="/pictures/check-green.gif" 
+            style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+            alt="Success icon"
+          /> <br> <br>Everything is saved successfully!`
+        );
+        location.reload();
+} else {
+   const errorData = await response.json();
+   console.warn("❗ Server responded with an error:", errorData);
+   localStorage.setItem('actionStatus', 'error');
+   localStorage.setItem(
+     'actionMessage',
+     `<img 
+       src="/pictures/error.gif" 
+       style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+       alt="Error icon"
+     /> <br> <br>Failed to save the post. Server said: ${errorData.error || "Unknown error"}`
+   );
+   location.reload();
+}
+    } catch (err) {
+      console.error("🚨 Fetch failed:", err);
+      localStorage.setItem('actionStatus', 'error');
+      localStorage.setItem(
+        'actionMessage',
+        '❌ An error occurred. Please check the console and try again.'
+      );
+      location.reload();
+    }
+  });
+
+  function showTempStatus(msg) {
+    const alert = document.getElementById('globalAlert');
+    const content = alert?.querySelector('.alert-content');
+    if (alert && content) {
+      content.innerHTML = `⏳ ${msg}`;
+      alert.style.display = 'block';
+    }
+  }
+});
+
+
+
+
+
+
+
+//THIS IS USED WHEN I SAVE OR DELETE OR EDIT SOMETHING IN THE MAIN PAGE 
+// ALERT HANDLER ON PAGE LOAD
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  //THIS IS THE ALERT BOX FROM THE FRONTEND CODE
+  const alertBox = document.querySelector("#globalAlert");
+  //THIS ARE THE actionStatus AND THE actionMessage THAT I CREATED ON THE FETCH
+  const status = localStorage.getItem('actionStatus');
+  const message = localStorage.getItem('actionMessage');
+//CHECK IF EVERYTHING EXISTS AND THEN SHOW THE ALERT BOX
+  if (status && message && alertBox) {
+    alertBox.classList.add("show");
+    alertBox.querySelector(".alert-content").innerHTML = message;
+    alertBox.style.visibility = 'visible';
+    alertBox.style.opacity = '1';
+
+    // Clear the flags after showing
+    localStorage.removeItem('actionStatus');
+    localStorage.removeItem('actionMessage');
+
+    // X button functionality
+    const closeButton = alertBox.querySelector('.closebtn');
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        alertBox.style.opacity = '0';
+        setTimeout(() => {
+          alertBox.style.visibility = 'hidden';
+        }, 600);
+      });
+    }
+  }
+});
+
+
+  </script>
+
+<%- include ("footer.ejs") %>
+

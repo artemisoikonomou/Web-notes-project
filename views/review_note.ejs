@@ -1,0 +1,324 @@
+<%- include("header.ejs") %>
+
+<form class="review-container">
+
+<!-- Alert Box HTML -->
+<div id="globalAlert" class="alert">
+  <!-- THIS IS THE × SYMBOL -->
+  <span class="closebtn">&times;</span>
+  <!-- THIS IS THE MESSAGE -->
+  <div class="alert-content"></div>
+</div>
+
+
+
+  <!-- THIS IS THE BUTTON THAT POPS WHEN WE GO DOWN ON THE PAGE -->
+    <a id="myBtn" title="Go to top">↑</a>
+
+    <!-- WITH THAT WE GO THOUGHT ALL THE ARRAY THAT WAS CREATED IN THE BACKEND -->
+    <% for(let thought of thoughts) { %>
+    <div class="seperation-border">
+
+
+        <div class="textareas">
+          <!-- THIS INCLUDES THE BOX WITH THE THOUGHT AND THE BUTTONS OF SAVE AND EDIT -->
+            <div class="form-container">
+
+              <!-- THIS IS THE BOX THAT SHOWS THE THOUGHT -->
+                <h3>What did you feel or notice?</h3>
+                <textarea class="thought_review review" name="thought" readonly><%= thought.thought %></textarea>
+        
+                <!-- THIS ARE THE BUTTONS THAT WORK FOR THE THOUGHT  -->
+                <div class="buttons-container">
+                    <button class="edit-button-thought" type="button">Edit</button>
+  
+                    <button class="save-button-thought" type="button" data-id="<%= thought.id %>">Save</button>
+                     
+                </div>
+    
+            </div>
+    
+            <!-- THIS INCLUDES THE BOX WITH THE REALIZATION AND THE BUTTONS OF SAVE AND EDIT -->
+            <div class="form-container">
+
+              <!-- THIS IS THE BOX THAT SHOWS THE REALIZATION -->
+                <h3>What do you think it meant? (Optional)</h3>
+                <textarea class="realization_review review" name="realization" readonly><%= thought.response %></textarea>
+    
+                 <!-- THIS ARE THE BUTTONS THAT WORK FOR THE REALIZATION  -->
+                <div class="buttons-container">
+                    <button class="edit-button-realization" type="button">Edit</button>
+                    <button class="save-button-realization" type="button" data-id="<%= thought.id %>">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- THIS IS THE DELTE BUTTON THAT DELETE EVERYTHING -->
+        <button class="delete-post-button" data-id="<%= thought.id %>">Delete Post</button>
+
+        <!-- THIS IS USED TO SHOW THE TIME THAT EVERYTHING WAS POSTED -->
+        <div class="time-posted">
+            <p class="timestamp">Posted on <%= new Date(thought.created_at).toLocaleString() %></p>
+        </div>
+
+
+        
+    </div>
+    <% } %>
+
+
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+     //THIS CODE IS USED FOR MAKING THE  GO TO TOP BUTTON WHEN I SCROLL DOWN 
+    // Show/hide the button on scroll
+    $(window).on("scroll", function () {
+      if ($(this).scrollTop() > 20) {
+        $("#myBtn").addClass("show");
+      } else {
+        $("#myBtn").removeClass("show");
+      }
+    });
+
+    // Smooth scroll to top when button is clicked
+    $("#myBtn").on("click", function () {
+      $("html, body").animate({
+        scrollTop: 0
+      }, 600, "linear");
+    });
+
+
+
+    // ALERT HANDLER ON PAGE LOAD
+
+    //Sometimes your JavaScript tries to run before the page is finished loading. 
+    // That can cause errors, especially if you're trying to work with buttons, text, or anything else from the page.
+    window.addEventListener('DOMContentLoaded', () => {
+      //THIS IS THE ALERT BOX FROM THE FRONTEND CODE
+      const alertBox = document.querySelector("#globalAlert");
+      //THIS ARE THE actionStatus AND THE actionMessage THAT I CREATED ON THE FETCH
+      const status = localStorage.getItem('actionStatus');
+      const message = localStorage.getItem('actionMessage');
+    //CHECK IF EVERYTHING EXISTS AND THEN SHOW THE ALERT BOX
+      if (status && message && alertBox) {
+        alertBox.classList.add("show");
+        alertBox.querySelector(".alert-content").innerHTML = message;
+        alertBox.style.visibility = 'visible';
+        alertBox.style.opacity = '1';
+
+        // Clear the flags after showing
+        localStorage.removeItem('actionStatus');
+        localStorage.removeItem('actionMessage');
+
+        // X button functionality
+        const closeButton = alertBox.querySelector('.closebtn');
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            alertBox.style.opacity = '0';
+            setTimeout(() => {
+              alertBox.style.visibility = 'hidden';
+            }, 600);
+          });
+        }
+      }
+    });
+
+
+
+//THIS CODE IS USED FOR THE EDIT AND SAVE BUTTON IN THE REVIEW_NOTE.EJS
+
+// document.querySelectorAll(".seperation-border"):
+// Purpose: This selects all elements in the document that have the class .seperation-border.
+// It returns a NodeList (similar to an array) of all the elements that match the class .seperation-border.
+
+document.querySelectorAll(".seperation-border").forEach(container => {
+  const textarea_thought = container.querySelector(".thought_review");
+  const editBtnT = container.querySelector(".edit-button-thought");
+  const saveBtnT = container.querySelector(".save-button-thought");
+
+
+  const textarea_realization = container.querySelector(".realization_review");
+  const editBtnR = container.querySelector(".edit-button-realization");
+  const saveBtnR = container.querySelector(".save-button-realization");
+
+  // This checks if both editBtnT (the edit button) and textarea_thought (the textarea) exist in the current container.
+  if (editBtnT && textarea_thought) {
+    //THIS MAKES THE TEXTAREA EDITABLE
+    editBtnT.addEventListener("click", () => {
+      textarea_thought.removeAttribute("readonly");
+      textarea_thought.focus();
+    });
+  }
+
+  if (saveBtnT && textarea_thought) {
+    //WHEN I CLICK THE SAVE BUTTON AFTER THE CHANGES
+    saveBtnT.addEventListener("click", async () => {
+      //MAKE AGAIN THE TEXTAREA NOT EDITABLE AGAIN
+      textarea_thought.setAttribute("readonly", "");
+
+      //GET THE VALUES OF THE TEXTAREA AND THE ID 
+      const updatedThought = textarea_thought.value;
+      //You typically use this to pass data from HTML to JavaScript—like record IDs, 
+      // user identifiers, or other metadata—without embedding it in the DOM in a more complex way.
+
+      //THIS WAY IS USED IN VANILLA JS AND NOT JQUERY
+      const id = saveBtnT.dataset.id;
+
+      try {
+        //USE THE ROUTE THAT WE NEED TO CONNECT WITH THE BACKEND 
+        const response = await fetch(`/update_thought/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          //SEND BACK THE NEW CHANGES
+          body: JSON.stringify({ thought: updatedThought }),
+        });
+
+        //CHECKS IF EVERYTHING IS FINE WITH THE BACKEND
+
+        if (response.ok) {
+          //I USE LOCALSTORAGE SO I CAN TEMPORALLY SAVE THE MESSAGES THAT ARE NEEDED FOR THE ALERT MESSAGE
+            localStorage.setItem('actionStatus', 'success');
+            localStorage.setItem(
+              'actionMessage',
+              `<img 
+                src="/pictures/check-green.gif" 
+                style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+                alt="Success icon"
+              /> <br> <br>Everything was saved successfully!`
+            );
+
+        } else {
+            localStorage.setItem('actionStatus', 'error');
+            localStorage.setItem(
+              'actionMessage',
+              `<img 
+                src="/pictures/error.gif" 
+                style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+                alt="Success icon"
+              /> <br> <br>Failed to save the changes.`
+            );
+    }
+            location.reload();
+      } catch (err) {
+          console.error(err);
+          localStorage.setItem('actionStatus', 'error');
+          localStorage.setItem('actionMessage', '❌ An error occurred. Please try again.');
+          location.reload();
+      }
+    });
+  }
+
+  // Realization edit/save
+  if (editBtnR && textarea_realization) {
+    editBtnR.addEventListener("click", () => {
+      textarea_realization.removeAttribute("readonly");
+      textarea_realization.focus();
+    });
+  }
+
+  if (saveBtnR && textarea_realization) {
+    saveBtnR.addEventListener("click", async () => {
+      textarea_realization.setAttribute("readonly", "");
+      const updatedRealization = textarea_realization.value;
+      const id = saveBtnR.dataset.id;
+
+      try {
+        const response = await fetch(`/update_realization/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ realization: updatedRealization }), 
+        });
+
+       if (response.ok) {
+            localStorage.setItem('actionStatus', 'success');
+            localStorage.setItem(
+              'actionMessage',
+              `<img 
+                src="/pictures/check-green.gif" 
+                style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+                alt="Success icon"
+              /> <br> <br>Everything was saved successfully!`
+            );
+
+        } else {
+            localStorage.setItem('actionStatus', 'error');
+            localStorage.setItem(
+              'actionMessage',
+              `<img 
+                src="/pictures/error.gif" 
+                style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+                alt="Success icon"
+              /> <br> <br>Failed to save the changes.`
+            );
+          }
+            location.reload();
+      } catch (err) {
+          console.error(err);
+          localStorage.setItem('actionStatus', 'error');
+          localStorage.setItem('actionMessage', '❌ An error occurred. Please try again.');
+          location.reload();
+      }
+    });
+  }
+});
+
+
+// DELETE HANDLER
+$('.delete-post-button').on('click', async function () {
+  const id = $(this).data('id');
+
+  const confirmed = confirm("Are you sure you want to delete this entire post?");
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`/delete_thought/${id}`, {
+      method: 'DELETE'
+    });
+    if (response.ok) {
+      //SET THE ACTION IT CAN BE EITHER SUCCESS OR ERROR SO THAT WE CAN KNOW THE MESSAGE THAT FOLLOWS,IS MORE FOR A BACKEND USE
+      localStorage.setItem('actionStatus', 'success');
+      //SET THE MESSAGE THAT WILL BE SHOWN TO THE FRONTEND
+      localStorage.setItem(
+        'actionMessage',
+        `<img 
+          src="/pictures/check-green.gif" 
+          style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+          alt="Success icon"
+        /> <br> <br>Post deleted successfully!`
+      );
+      location.reload();
+    } else {
+      localStorage.setItem('actionStatus', 'error');
+      localStorage.setItem(
+        'actionMessage',
+        `<img 
+          src="/pictures/error.gif" 
+          style="width:50px; height:50px; margin-right:8px; vertical-align:middle; border-radius:6px;" 
+          alt="Success icon"
+        /> <br> <br>Failed to delete the post.`
+      );
+      location.reload();
+    }
+
+    location.reload(); // reload in both cases
+  } catch (err) {
+    console.error(err);
+    localStorage.setItem('actionStatus', 'error');
+    localStorage.setItem('actionMessage', '❌ An error occurred. Please try again.');
+    location.reload();
+  }
+});
+
+
+
+
+
+</script>
+
+
+<%- include ("footer.ejs") %>
+
+<!-- <img src="/pictures/check-green.gif" alt=""> -->

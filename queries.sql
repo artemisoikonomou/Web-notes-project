@@ -1,0 +1,14 @@
+CREATE TABLE thoughts (
+  id SERIAL PRIMARY KEY,
+  thought TEXT NOT NULL,
+  response TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  user_id INTEGER REFERENCES users(id)
+);
+
+
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL
+);
