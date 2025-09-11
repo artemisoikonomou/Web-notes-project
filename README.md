@@ -1,5 +1,6 @@
 # Web-notes-project
 Notes project
+
 Now I See
 
 A minimalist journaling web application that helps users capture and reflect on their thoughts. Users can write journal entries, explore insights, and track personal growth over time in a calm, focused interface.
