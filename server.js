@@ -115,28 +115,37 @@ app.get("/signup", (req, res) => {
 
 // Handle user signup
 app.post("/signup", async (req, res) => {
+  //gets the username and password that was sent from the index.js
   const username = req.body.username;
   const password = req.body.password;
 
   try {
+    //checks if the username is unique
     const checkResult = await db.query("SELECT * FROM users WHERE username=$1", [username]);
     if (checkResult.rows.length > 0) {
       return res.status(400).send("Username already exists");
     }
 
+    //this is used to hash the password for safety 
     bcrypt.hash(password, saltRounds, async (err, hash) => {
       if (err) {
         console.error(err);
         return res.status(500).send("Server error while hashing password");
       }
 
+      //this is when the username and password insert in the database
       try {
         // Insert user and get the new user's ID
         const insertResult = await db.query(
           "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id",[username, hash]);
 
         // Set session
+        //You can check req.session.userId to verify if the user is logged in.Is useful also because the user does not need to login for every page 
+        //After destroying the session, the server forgets the user, so they are effectively logged out.
+        
+        // this helps the server know which user is logged in on future requests
         req.session.userId = insertResult.rows[0].id;
+        //this is used for if it is needed to display the username on the pages
         req.session.username = username;
 
         res.status(200).json({ message: "Signup successful" });
@@ -158,11 +167,12 @@ app.post("/signup", async (req, res) => {
 
 // Handle user login
 app.post("/login", async (req, res) => {
-  //GET THE VALUES FROM THE UNPUT
+  //GET THE VALUES FROM THE INPUT
   const username = req.body.username;
   const loginPassword = req.body.password;
 
   try {
+    //check if the username exists
     const result = await db.query("SELECT * FROM users WHERE username=$1", [username]);
 
     if (result.rows.length > 0) {
