@@ -1,0 +1,25 @@
+<%- include("header.ejs") %>
+<!-- <div class="page-container"> -->
+<main class="content-wrap">
+
+    <!-- this is used as the box that is shown after every change we do like save a note, edit ,or delete -->
+    <div id="globalAlert" class="alert">
+      <span class="closebtn">&times;</span>
+      <div class="alert-content"></div>
+    </div>
+            
+    <!-- USE A FORM TO POST ,BASICALLY SAVES EVERYTHING FROM THE TEXTAREA -->
+    <form class="new-write" id="newWriteForm">
+      <h3>What did you feel or notice?</h3>
+      <textarea class="thought" name="thought" rows="5" placeholder="Write the moment, feeling, or question..."></textarea><br><br>
+
+      <h3>What do you think it meant? (Optional)</h3>
+      <textarea class="realization" name="realization" rows="5" placeholder="Add your reflection or understanding later..."></textarea><br><br>
+
+      <button class="save-button" type="submit">Save</button>
+    </form>
+
+</main>
+
+<%- include ("footer.ejs") %>
+

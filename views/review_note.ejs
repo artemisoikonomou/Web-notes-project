@@ -1,0 +1,74 @@
+<%- include("header.ejs") %>
+
+<form class="review-container">
+
+<!-- Alert Box HTML -->
+<div id="globalAlert" class="alert">
+  <!-- THIS IS THE × SYMBOL -->
+  <span class="closebtn">&times;</span>
+  <!-- THIS IS THE MESSAGE -->
+  <div class="alert-content"></div>
+</div>
+
+
+
+  <!-- THIS IS THE BUTTON THAT POPS WHEN WE GO DOWN ON THE PAGE -->
+    <a id="myBtn" title="Go to top">↑</a>
+
+    <!-- WITH THAT WE GO THOUGHT ALL THE ARRAY THAT WAS CREATED IN THE BACKEND -->
+    <% for(let thought of thoughts) { %>
+    <div class="seperation-border">
+
+
+        <div class="textareas">
+          <!-- THIS INCLUDES THE BOX WITH THE THOUGHT AND THE BUTTONS OF SAVE AND EDIT -->
+            <div class="form-container">
+
+              <!-- THIS IS THE BOX THAT SHOWS THE THOUGHT -->
+                <h3>What did you feel or notice?</h3>
+                <textarea class="thought_review review" name="thought" readonly><%= thought.thought %></textarea>
+        
+                <!-- THIS ARE THE BUTTONS THAT WORK FOR THE THOUGHT  -->
+                <div class="buttons-container">
+                    <button class="edit-button-thought" type="button">Edit</button>
+  
+                    <button class="save-button-thought" type="button" data-id="<%= thought.id %>">Save</button>
+                     
+                </div>
+    
+            </div>
+    
+            <!-- THIS INCLUDES THE BOX WITH THE REALIZATION AND THE BUTTONS OF SAVE AND EDIT -->
+            <div class="form-container">
+
+              <!-- THIS IS THE BOX THAT SHOWS THE REALIZATION -->
+                <h3>What do you think it meant? (Optional)</h3>
+                <textarea class="realization_review review" name="realization" readonly><%= thought.response %></textarea>
+    
+                 <!-- THIS ARE THE BUTTONS THAT WORK FOR THE REALIZATION  -->
+                <div class="buttons-container">
+                    <button class="edit-button-realization" type="button">Edit</button>
+                    <button class="save-button-realization" type="button" data-id="<%= thought.id %>">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- THIS IS THE DELTE BUTTON THAT DELETE EVERYTHING -->
+        <button class="delete-post-button" data-id="<%= thought.id %>">Delete Post</button>
+
+        <!-- THIS IS USED TO SHOW THE TIME THAT EVERYTHING WAS POSTED -->
+        <div class="time-posted">
+            <p class="timestamp">Posted on <%= new Date(thought.created_at).toLocaleString() %></p>
+        </div>
+
+
+        
+    </div>
+    <% } %>
+
+
+</form>
+
+<%- include ("footer.ejs") %>
+
+<!-- <img src="/pictures/check-green.gif" alt=""> -->
